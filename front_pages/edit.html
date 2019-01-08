@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <title>Edit Post</title>
+</head>
+
+<body>
+    <form class="form-group container">
+        <h1 class="display-4 text-center jumbotron">Edit Post</h1>
+        <label class="h5">Title</label>
+        <input type="text" class="form-control" name="title">
+        <label class="h5">Body</label>
+        <input type="text" class="form-control" name="body">
+        <label class="h5">Author</label>
+        <textarea class="form-control" name="author"></textarea>
+        <br>
+        <button class="btn btn-primary" role="submit">Save</button>
+        <button class="btn btn-light">Reset</button>
+    </form>
+    <div class="alert-danger text-center container d-none" id="err_msg">Field Left Empty</div>
+</body>
+<script>
+    let count = 0;
+    let superDigit;
+    let filter_URL;
+    const symbol = '%';
+
+    document.body.onload = function () {
+        let url = document.URL;
+
+        if (contains(url, ['title', 'body', 'author'])) {
+
+            let title;
+            let body;
+            let author;
+
+            findPattern(url, '', 0);
+
+            if (getResult()) {
+                for (let i = 0; i < getResult(); i++) {
+                    url = url.replace(getDigit(), ' ');
+                }
+            }
+
+            filter_URL = url.toString();
+            id = filter_URL.substring(filter_URL.indexOf("id") + 3, filter_URL.indexOf("&title")).trim();
+            title = filter_URL.substring(filter_URL.indexOf("title") + 6, filter_URL.indexOf("&body")).trim();
+            body = filter_URL.substring(filter_URL.indexOf("body") + 5, filter_URL.indexOf("&author")).trim();
+            author = filter_URL.substring(filter_URL.indexOf("author") + 7).trim();
+
+            setInput(title, body, author);
+        } else {
+            window.location.replace("../index.php");
+        }
+    }
+
+    function contains(url, names) {
+        for (let i = 0; i < names.length; i++) {
+            if (!url.includes(names[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function findPattern(url, digit, pos) {
+        let index = url.indexOf(symbol, pos);
+
+        if (index != -1) {
+            count++;
+            if (digit == '') {
+                createSymbol(index, url, digit);
+            } else {
+                index = url.indexOf(digit);
+            }
+            findPattern(url, digit, index + 1);
+        }
+    }
+
+    function createSymbol(index, url, digit) {
+        for (let i = index + 1; i < url.length; i++) {
+            if (!isNaN(url.charAt(i))) {
+                digit += url.charAt(i);
+            } else {
+                break;
+            }
+        }
+        digit = symbol + digit;
+        superDigit = digit;
+    }
+
+    function getResult() {
+        return count;
+    }
+
+    function getDigit() {
+        return superDigit;
+    }
+
+    function setInput(title, body, author) {
+        document.getElementsByName('title')[0].value = title;
+        document.getElementsByName('body')[0].value = body;
+        document.getElementsByName('author')[0].innerHTML = author;
+    }
+</script>
+
+<script>
+    document.forms[0].onsubmit = function (event) {
+        event.preventDefault();
+        let check_msg = false;
+        let title = document.getElementsByName('title')[0].value;
+        let body = document.getElementsByName('body')[0].value;
+        let author = document.getElementsByName('author')[0].value;
+
+        if (validate(title) && validate(body) && validate(author)) {
+            check_msg = true;
+        }
+
+        check(check_msg);
+        AJAXCall(id, title, body, author);
+    }
+
+    document.getElementsByTagName('button')[1].addEventListener('click', function (event) {
+        event.preventDefault();
+        clear();
+    });
+
+    function validate(name) {
+        if (name == null || name.length == 0 || name == "") {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function AJAXCall(id, title, body, author) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', `../pages/edit_SERVER.php?id=${id}&title=${title}&body=${body}&author=${author}`, true);
+        xhr.onload = function () {
+            console.log(this.responseText);
+            if (this.responseText == "ERROR") {
+                document.getElementById('err_msg').innerHTML = 'Record Failed to Insert';
+                document.getElementById('err_msg').classList.add('d-block');
+            } else if (this.status == 200) {
+                clear();
+                window.location.replace("../");
+            } else {
+                document.getElementById('err_msg').innerHTML = 'Something Went Wrong';
+                document.getElementById('err_msg').classList.add('d-block');
+            }
+        }
+        xhr.send();
+    }
+
+    function check(opt) {
+        if (!opt) {
+            document.getElementById('err_msg').innerHTML = 'Field Left Empty';
+            document.getElementById('err_msg').classList.add('d-block');
+        } else {
+            document.getElementById('err_msg').classList.remove('d-block');
+        }
+    }
+
+    function clear() {
+        let inputs = document.getElementsByClassName('form-control');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].value = '';
+        }
+    }
+</script>
+
+</html>

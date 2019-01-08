@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <title>Add Post</title>
+</head>
+
+<body>
+    <form class="form-group container">
+        <h1 class="display-4 text-center jumbotron">Add Post</h1>
+        <label class="h5">Title</label>
+        <input type="text" class="form-control" name="title">
+        <label class="h5">Body</label>
+        <input type="text" class="form-control" name="body">
+        <label class="h5">Author</label>
+        <textarea class="form-control" name="author"></textarea>
+        <br>
+        <button class="btn btn-primary" role="submit">Submit</button>
+        <button class="btn btn-light">Reset</button>
+    </form>
+    <div class="alert-danger text-center container d-none" id="err_msg">Field Left Empty</div>
+    <script>
+        document.forms[0].onsubmit = function (event) {
+            event.preventDefault();
+            let check_msg = false;
+            let title = document.getElementsByName('title')[0].value;
+            let body = document.getElementsByName('body')[0].value;
+            let author = document.getElementsByName('author')[0].value;
+
+
+            if (validate(title) && validate(body) && validate(author)) {
+                check_msg = true;
+            }
+
+            check(check_msg);
+            AJAXCall(title, body, author);
+        }
+
+        document.getElementsByTagName('button')[1].addEventListener('click', function (event) {
+            event.preventDefault();
+            clear();
+        });
+
+        function validate(name) {
+            if (name == null || name.length == 0 || name == "") {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function AJAXCall(title, body, author) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', `../pages/add_SERVER.php?title=${title}&body=${body}&author=${author}`, true);
+            xhr.onload = function () {
+                if (this.responseText == "ERROR") {
+                    document.getElementById('err_msg').innerHTML = 'Record Failed to Insert';
+                    document.getElementById('err_msg').classList.add('d-block');
+                } else if (this.status == 200) {
+                    clear();
+                    window.location.replace("../index.php");
+                } else {
+                    document.getElementById('err_msg').innerHTML = 'Something Went Wrong';
+                    document.getElementById('err_msg').classList.add('d-block');
+                }
+            }
+            xhr.send();
+        }
+
+        function check(opt) {
+            if (!opt) {
+                document.getElementById('err_msg').innerHTML = 'Field Left Empty';
+                document.getElementById('err_msg').classList.add('d-block');
+            } else {
+                document.getElementById('err_msg').classList.remove('d-block');
+            }
+        }
+
+        function clear() {
+            let inputs = document.getElementsByClassName('form-control');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].value = '';
+            }
+        }
+    </script>
+</body>
+
+</html>
