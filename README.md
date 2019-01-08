@@ -1,3 +1,3 @@
-# Basic PHP Login Page with PDO
-# Original CSS code which is responsive
+# Basic PHP CRUD System with mysqli
 # Basic Validations performed
+# Bootstrap front-end
